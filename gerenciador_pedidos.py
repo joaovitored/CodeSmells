@@ -1,3 +1,25 @@
+
+MAX_PARCELAS_SEM_JUROS = 3
+LIMITE_DESCONTO = 500
+LIMITE_FRETE_GRATIS = 300
+
+DESCONTO_COMUM = 0.05
+DESCONTO_VIP = 0.15
+DESCONTO_VIP_MINIMO = 0.10
+DESCONTO_FUNCIONARIO = 0.20
+
+FRETE_PE = 12.5
+FRETE_NORDESTE = 22.9
+FRETE_OUTRAS_REGIOES = 39.9
+
+DESCONTO_PIX = 0.05
+TAXA_BOLETO = 2.5
+TAXA_PARCELAMENTO = 0.0199
+
+MIN_PARCELAS = 1
+MAX_PARCELAS = 12
+LIMITE_META_MENSAL = 10000
+
 class GerenciadorPedidos:
 
     def __init__(self):
@@ -29,48 +51,53 @@ class GerenciadorPedidos:
             if self.estoque[item[0]] < int(item[1]):
                 return "ERRO: estoque insuficiente " + item[0]
 
+        
         subtotal = 0
         for item in self.itens:
             subtotal += int(item[1]) * float(item[2])
 
         desconto = 0
         if tipo_cliente == "COMUM":
-            if subtotal > 500:
-                desconto = subtotal * 0.05
+            if subtotal > LIMITE_DESCONTO:
+                desconto = subtotal * DESCONTO_COMUM
         elif tipo_cliente == "VIP":
-            if subtotal > 500:
-                desconto = subtotal * 0.15
+            if subtotal > LIMITE_DESCONTO:
+                desconto = subtotal * DESCONTO_VIP
             else:
-                desconto = subtotal * 0.10
+                desconto = subtotal * DESCONTO_VIP_MINIMO
         elif tipo_cliente == "FUNCIONARIO":
-            desconto = subtotal * 0.20
+            desconto = subtotal * DESCONTO_FUNCIONARIO
         else:
             return "ERRO: tipo de cliente desconhecido"
 
         frete = 0
         if uf == "PE":
-            frete = 12.5
+            frete = FRETE_PE
         elif (uf == "PB" or uf == "AL" or uf == "RN" or uf == "BA"
               or uf == "SE" or uf == "CE" or uf == "PI" or uf == "MA"):
-            frete = 22.9
+            frete = FRETE_NORDESTE
         else:
-            frete = 39.9
-        if subtotal - desconto > 300 or tipo_cliente == "VIP":
+            frete = FRETE_OUTRAS_REGIOES
+
+        if subtotal - desconto > LIMITE_FRETE_GRATIS or tipo_cliente == "VIP":
             frete = 0
 
         total = subtotal - desconto + frete
+
         if pagamento == "PIX":
-            total = total * 0.95
+            total = total * (1 - DESCONTO_PIX)
         elif pagamento == "BOLETO":
-            total = total + 2.5
+            total = total + TAXA_BOLETO
         elif pagamento == "CARTAO":
-            if parcelas < 1 or parcelas > 12:
+            if parcelas < MIN_PARCELAS or parcelas > MAX_PARCELAS:
                 return "ERRO: parcelas invalidas"
-            if parcelas > 3:
-                total = total * (1 + 0.0199 * parcelas)
+            if parcelas > MAX_PARCELAS_SEM_JUROS:
+                total = total * (1 + TAXA_PARCELAMENTO * parcelas)
         else:
             return "ERRO: forma de pagamento invalida"
+
         total = round(total * 100.0) / 100.0
+
 
         for item in self.itens:
             self.estoque[item[0]] = self.estoque[item[0]] - int(item[1])
@@ -98,32 +125,38 @@ class GerenciadorPedidos:
         self.itens.clear()
         return "OK: " + "%.2f" % total
 
+        
     def calcular_orcamento(self, tipo_cliente, uf):
         subtotal = 0
         for item in self.itens:
             subtotal += int(item[1]) * float(item[2])
+
         desconto = 0
         if tipo_cliente == "COMUM":
-            if subtotal > 500:
-                desconto = subtotal * 0.05
+            if subtotal > LIMITE_DESCONTO:
+                desconto = subtotal * DESCONTO_COMUM
         elif tipo_cliente == "VIP":
-            if subtotal > 500:
-                desconto = subtotal * 0.15
+            if subtotal > LIMITE_DESCONTO:
+                desconto = subtotal * DESCONTO_VIP
             else:
-                desconto = subtotal * 0.10
+                desconto = subtotal * DESCONTO_VIP_MINIMO
         elif tipo_cliente == "FUNCIONARIO":
-            desconto = subtotal * 0.2
+            desconto = subtotal * DESCONTO_FUNCIONARIO
+
         frete = 0
         if uf == "PE":
-            frete = 12.5
+            frete = FRETE_PE
         elif (uf == "PB" or uf == "AL" or uf == "RN" or uf == "BA"
               or uf == "SE" or uf == "CE" or uf == "PI"):
-            frete = 22.9
+            frete = FRETE_NORDESTE
         else:
-            frete = 39.9
-        if subtotal - desconto > 300 or tipo_cliente == "VIP":
+            frete = FRETE_OUTRAS_REGIOES
+
+        if subtotal - desconto > LIMITE_FRETE_GRATIS or tipo_cliente == "VIP":
             frete = 0
+
         return round((subtotal - desconto + frete) * 100.0) / 100.0
+
 
     def gerar_relatorio(self):
         r = "=== RELATORIO DE VENDAS ===\n"
@@ -143,7 +176,7 @@ class GerenciadorPedidos:
         r += "Pedidos COMUM: " + str(comum) + "\n"
         r += "Pedidos FUNCIONARIO: " + str(func) + "\n"
         r += "Total vendido: R$ " + "%.2f" % self.total_vendido + "\n"
-        if self.total_vendido > 10000:
+        if self.total_vendido > LIMITE_META_MENSAL:
             r += "Meta mensal atingida!\n"
         return r
 
@@ -158,10 +191,19 @@ class GerenciadorPedidos:
 
     def mensagem_promocional(self, tipo_cliente):
         if tipo_cliente == "VIP":
-            return "Ofertas exclusivas: 15% em compras acima de R$ 500!"
+            return (
+                f"Ofertas exclusivas: {DESCONTO_VIP:.0%} "
+                f"em compras acima de R$ {LIMITE_DESCONTO}!"
+            )
         elif tipo_cliente == "COMUM":
-            return "Compre acima de R$ 500 e ganhe 5% de desconto!"
+            return (
+                f"Compre acima de R$ {LIMITE_DESCONTO} e ganhe "
+                f"{DESCONTO_COMUM:.0%} de desconto!"
+            )
         elif tipo_cliente == "FUNCIONARIO":
-            return "Lembrete: seu desconto de 20% vale em toda a loja."
+            return (
+                f"Lembrete: seu desconto de "
+                f"{DESCONTO_FUNCIONARIO:.0%} vale em toda a loja."
+            )
         else:
             return ""

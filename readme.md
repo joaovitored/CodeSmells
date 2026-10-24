@@ -13,3 +13,19 @@
 | **Inconsistent Validation** | `processar_pedido()` rejeita tipo de cliente desconhecido; `calcular_orcamento()` não faz a mesma validação | A mesma entrada pode ser tratada de maneira diferente entre operações.
 
 para realizar a bateria de testes do script teste_gerenciador_pedidos, use python -m unittest -v no terminal
+
+
+## 3. Histórico de refatoração e commits
+
+
+Refatoração 1 — Extração de constantes
+
+Code smell tratado: Magic Numbers.
+
+Os valores numéricos associados às regras de desconto, frete, pagamento, parcelamento e meta mensal foram substituídos por constantes nomeadas. As mensagens promocionais também passaram a utilizar essas constantes.
+
+Testes: os seis testes de caracterização continuaram passando após a alteração.
+
+Princípio SOLID: a extração de constantes melhora a legibilidade e a manutenção, mas não restaura diretamente um princípio SOLID específico.
+
+Commit: extrai constantes comerciais.
