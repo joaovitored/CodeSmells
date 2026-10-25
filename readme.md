@@ -77,6 +77,16 @@ Pendente: descontos, fretes, formas de pagamento, relatório, alerta de estoque,
 
 * **Commit:** `aplica padrão Strategy para descontos de clientes (OCP)`
 
+### Refatoração 5 — Padrão Strategy para Formas de Pagamento
+* **Code smell tratado:** Primitive Obsession (Condicionais baseadas em strings de pagamento).
+
+* **O que mudou:** A lógica de cálculo de taxas, juros e validações de parcelas das formas de pagamento foi movida de dentro do método `processar_pedido()` para classes dedicadas (`PagamentoPIX`, `PagamentoBoleto`, `PagamentoCartao`). O gerenciador agora resolve o fluxo financeiro delegando a execução para a estratégia correspondente através de um mapa chave-valor.
+
+* **Testes:** Toda a bateria de testes cobrindo PIX, Boleto, Cartão em 3x, Cartão em 5x com juros e erros de parcelamento continuou passando com 100% de sucesso (verde).
+
+* **Princípio SOLID:** OCP (Open/Closed Principle). O método central de processamento de pedidos está protegido contra alterações caso novas formas de pagamento (como criptomoedas ou vale-refeição) sejam adicionadas no futuro; bastará implementar uma nova classe e registrá-la.
+
+* **Commit:** `aplica padrão Strategy para formas de pagamento (OCP)`
 
 
 ## 4. Qual princípio SOLID utilizado?
