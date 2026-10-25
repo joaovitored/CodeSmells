@@ -1,4 +1,3 @@
-
 MAX_PARCELAS_SEM_JUROS = 3
 LIMITE_DESCONTO = 500
 LIMITE_FRETE_GRATIS = 300
@@ -35,8 +34,7 @@ class GerenciadorPedidos:
     def adicionar_item(self, produto, qtd, preco):
         self.itens.append([produto, str(qtd), str(preco)])
 
-    def processar_pedido(self, nome, email, tipo_cliente, pagamento, parcelas,
-                         rua, numero, cidade, uf, cep):
+    def _validar_pedido(self, nome, email, cep):
         if nome is None or nome.strip() == "":
             return "ERRO: cliente sem nome"
         if email is None or "@" not in email or "." not in email:
@@ -50,6 +48,13 @@ class GerenciadorPedidos:
                 return "ERRO: produto inexistente " + item[0]
             if self.estoque[item[0]] < int(item[1]):
                 return "ERRO: estoque insuficiente " + item[0]
+        return None
+
+    def processar_pedido(self, nome, email, tipo_cliente, pagamento, parcelas,
+                         rua, numero, cidade, uf, cep):
+        erro = self._validar_pedido(nome, email, cep)
+        if erro:
+            return erro
 
         
         subtotal = 0
