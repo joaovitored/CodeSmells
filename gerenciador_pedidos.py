@@ -69,6 +69,26 @@ class Endereco:
         return self.rua + ", " + self.numero + ", " + self.cidade + "/" + self.uf + ", CEP " + self.cep
 
 
+class PedidoRepository:
+    def salvar(self, nome, email, tipo_cliente, pagamento, total, endereco):
+        try:
+            with open("pedidos.csv", "a", encoding="utf-8") as f:
+                f.write(nome + ";" + email + ";" + tipo_cliente + ";" + pagamento + ";"
+                        + str(total) + ";" + endereco + "\n")
+        except OSError as e:
+            print("Falha ao salvar pedido: " + str(e))
+
+
+class ServicoNotificacao:
+    def enviar_confirmacao(self, nome, email, tipo_cliente, total, endereco):
+        mensagem = "Ola " + nome + ", seu pedido foi confirmed. "
+        if tipo_cliente == "VIP":
+            mensagem += "Obrigado por ser VIP! Frete gratis garantido. "
+        elif tipo_cliente == "FUNCIONARIO":
+            mensagem += "Desconto de colaborador aplicado. "
+        mensagem += "Total: R$ " + "%.2f" % total + ". Entrega em: " + endereco
+        print("[EMAIL para " + email + "] " + mensagem)
+
 
 class GerenciadorPedidos:
 
@@ -93,6 +113,9 @@ class GerenciadorPedidos:
             "BOLETO": PagamentoBoleto(),
             "CARTAO": PagamentoCartao()
         }
+
+        self.repositorio = PedidoRepository()
+        self.notificador = ServicoNotificacao()
 
     def adicionar_item(self, produto, qtd, preco):
         self.itens.append([produto, str(qtd), str(preco)])
@@ -224,26 +247,26 @@ class GerenciadorPedidos:
         # endereco = rua + ", " + numero + ", " + cidade + "/" + uf + ", CEP " + cep
         # CORRIGIDO:
         obj_endereco = Endereco(rua, numero, cidade, uf, cep)
-                endereco = obj_endereco.formatar()
+        endereco = obj_endereco.formatar()
 
+        self.repositorio.salvar(nome, email, tipo_cliente, pagamento, total, endereco)
+        self.notificador.enviar_confirmacao(nome, email, tipo_cliente, total, endereco)
 
+        # try:
+        #     f = open("pedidos.csv", "a", encoding="utf-8")
+        #     f.write(nome + ";" + email + ";" + tipo_cliente + ";" + pagamento + ";"
+        #             + str(total) + ";" + endereco + "\n")
+        #     f.close()
+        # except OSError as e:
+        #     print("Falha ao salvar pedido: " + str(e))
 
-
-        try:
-            f = open("pedidos.csv", "a", encoding="utf-8")
-            f.write(nome + ";" + email + ";" + tipo_cliente + ";" + pagamento + ";"
-                    + str(total) + ";" + endereco + "\n")
-            f.close()
-        except OSError as e:
-            print("Falha ao salvar pedido: " + str(e))
-
-        mensagem = "Ola " + nome + ", seu pedido foi confirmado. "
-        if tipo_cliente == "VIP":
-            mensagem += "Obrigado por ser VIP! Frete gratis garantido. "
-        elif tipo_cliente == "FUNCIONARIO":
-            mensagem += "Desconto de colaborador aplicado. "
-        mensagem += "Total: R$ " + "%.2f" % total + ". Entrega em: " + endereco
-        print("[EMAIL para " + email + "] " + mensagem)
+        # mensagem = "Ola " + nome + ", seu pedido foi confirmado. "
+        # if tipo_cliente == "VIP":
+        #     mensagem += "Obrigado por ser VIP! Frete gratis garantido. "
+        # elif tipo_cliente == "FUNCIONARIO":
+        #     mensagem += "Desconto de colaborador aplicado. "
+        # mensagem += "Total: R$ " + "%.2f" % total + ". Entrega em: " + endereco
+        # print("[EMAIL para " + email + "] " + mensagem)
 
         self.historico.append(nome + "|" + tipo_cliente + "|" + str(total))
         self.total_vendido += total

@@ -99,4 +99,17 @@ Pendente: descontos, fretes, formas de pagamento, relatório, alerta de estoque,
 
 * **Commit:** `extrai objeto Endereco para resolver Data Clumps (SRP)`
 
+
+### Refatoração 7 — Separação de Persistência e Notificação (Decomposição de God Class)
+* **Code smell tratado:** God Class, Divergent Change e Side Effects.
+
+* **O que mudou:** A classe `GerenciadorPedidos` deixou de abrir arquivos do sistema de arquivos e imprimir e-mails diretamente em tela. A persistência em arquivos planos foi movida para a classe `PedidoRepository` e o envio de e-mails de confirmação foi para a classe `ServicoNotificacao`.
+
+* **Testes:** Toda a bateria de testes de caracterização (incluindo a verificação de criação do arquivo pedidos.csv e os side effects simulados) continuou passando com sucesso (verde).
+
+* **Princípio SOLID:** SRP (Single Responsibility Principle) e visando DIP (Dependency Inversion Principle). O gerenciador de pedidos não possui mais motivos para mudar caso a infraestrutura de banco de dados ou o canal de mensageria sofram alterações futuras.
+
+* **Commit:** `separa persistência de dados e serviço de notificação (SRP)`
+
+
 ## 4. Qual princípio SOLID utilizado?
