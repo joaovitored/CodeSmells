@@ -38,6 +38,25 @@ class DescontoFuncionario:
         return subtotal * 0.20 # DESCONTO_FUNCIONARIO
 
 
+class PagamentoPIX:
+    def processar(self, total, parcelas):
+        # Aplica desconto de 5% do PIX
+        return total * 0.95
+
+class PagamentoBoleto:
+    def processar(self, total, parcelas):
+        # Adiciona taxa de R$ 2.50 do boleto
+        return total + 2.5
+
+class PagamentoCartao:
+    def processar(self, total, parcelas):
+        if parcelas < 1 or parcelas > 12:
+            return "ERRO: parcelas invalidas"
+        if parcelas > 3: # MAX_PARCELAS_SEM_JUROS
+            return total * (1 + 0.0199 * parcelas) # TAXA_PARCELAMENTO
+        return total
+
+
 
 class GerenciadorPedidos:
 
@@ -55,6 +74,12 @@ class GerenciadorPedidos:
             "COMUM": DescontoComum(),
             "VIP": DescontoVIP(),
             "FUNCIONARIO": DescontoFuncionario()
+        }
+
+        self.estrategias_pagamento = {
+            "PIX": PagamentoPIX(),
+            "BOLETO": PagamentoBoleto(),
+            "CARTAO": PagamentoCartao()
         }
 
     def adicionar_item(self, produto, qtd, preco):
@@ -156,17 +181,27 @@ class GerenciadorPedidos:
 
         total = subtotal - desconto + frete
 
-        if pagamento == "PIX":
-            total = total * (1 - DESCONTO_PIX)
-        elif pagamento == "BOLETO":
-            total = total + TAXA_BOLETO
-        elif pagamento == "CARTAO":
-            if parcelas < MIN_PARCELAS or parcelas > MAX_PARCELAS:
-                return "ERRO: parcelas invalidas"
-            if parcelas > MAX_PARCELAS_SEM_JUROS:
-                total = total * (1 + TAXA_PARCELAMENTO * parcelas)
-        else:
+        estrategia_pgto = self.estrategias_pagamento.get(pagamento)
+        if not estrategia_pgto:
             return "ERRO: forma de pagamento invalida"
+            
+        resultado_pgto = estrategia_pgto.processar(total, parcelas)
+        if isinstance(resultado_pgto, str):
+            return resultado_pgto
+            
+        total = resultado_pgto
+
+        # if pagamento == "PIX":
+        #     total = total * (1 - DESCONTO_PIX)
+        # elif pagamento == "BOLETO":
+        #     total = total + TAXA_BOLETO
+        # elif pagamento == "CARTAO":
+        #     if parcelas < MIN_PARCELAS or parcelas > MAX_PARCELAS:
+        #         return "ERRO: parcelas invalidas"
+        #     if parcelas > MAX_PARCELAS_SEM_JUROS:
+        #         total = total * (1 + TAXA_PARCELAMENTO * parcelas)
+        # else:
+        #     return "ERRO: forma de pagamento invalida"
 
         total = round(total * 100.0) / 100.0
 
