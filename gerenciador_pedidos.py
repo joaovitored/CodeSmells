@@ -174,6 +174,11 @@ class GerenciadorPedidos:
         return subtotal, desconto, frete
 
 
+    def _atualizar_estoque(self):
+        for item in self.itens:
+            self.estoque[item[0]] = self.estoque[item[0]] - int(item[1])
+
+
     def processar_pedido(self, nome, email, tipo_cliente, pagamento, parcelas,
                          rua, numero, cidade, uf, cep):
         erro = self._validar_pedido(nome, email, cep)
@@ -240,9 +245,10 @@ class GerenciadorPedidos:
 
         total = round(total * 100.0) / 100.0
 
+        self._atualizar_estoque()
 
-        for item in self.itens:
-            self.estoque[item[0]] = self.estoque[item[0]] - int(item[1])
+        # for item in self.itens:
+        #     self.estoque[item[0]] = self.estoque[item[0]] - int(item[1])
 
         # endereco = rua + ", " + numero + ", " + cidade + "/" + uf + ", CEP " + cep
         # CORRIGIDO:
