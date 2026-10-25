@@ -50,13 +50,8 @@ class GerenciadorPedidos:
                 return "ERRO: estoque insuficiente " + item[0]
         return None
 
-    def processar_pedido(self, nome, email, tipo_cliente, pagamento, parcelas,
-                         rua, numero, cidade, uf, cep):
-        erro = self._validar_pedido(nome, email, cep)
-        if erro:
-            return erro
 
-        
+    def _calcular_valores(self, tipo_cliente, uf):
         subtotal = 0
         for item in self.itens:
             subtotal += int(item[1]) * float(item[2])
@@ -72,20 +67,63 @@ class GerenciadorPedidos:
                 desconto = subtotal * DESCONTO_VIP_MINIMO
         elif tipo_cliente == "FUNCIONARIO":
             desconto = subtotal * DESCONTO_FUNCIONARIO
-        else:
-            return "ERRO: tipo de cliente desconhecido"
 
         frete = 0
         if uf == "PE":
             frete = FRETE_PE
+        # Nota: Aqui já inclui o "MA", unificando a regra para o Nordeste
         elif (uf == "PB" or uf == "AL" or uf == "RN" or uf == "BA"
-              or uf == "SE" or uf == "CE" or uf == "PI" or uf == "MA"):
+                or uf == "SE" or uf == "CE" or uf == "PI" or uf == "MA"):
             frete = FRETE_NORDESTE
         else:
             frete = FRETE_OUTRAS_REGIOES
 
         if subtotal - desconto > LIMITE_FRETE_GRATIS or tipo_cliente == "VIP":
             frete = 0
+
+        return subtotal, desconto, frete
+
+
+    def processar_pedido(self, nome, email, tipo_cliente, pagamento, parcelas,
+                         rua, numero, cidade, uf, cep):
+        erro = self._validar_pedido(nome, email, cep)
+        if erro:
+            return erro
+
+        
+        # subtotal = 0
+        # for item in self.itens:
+        #     subtotal += int(item[1]) * float(item[2])
+
+        # desconto = 0
+        # if tipo_cliente == "COMUM":
+        #     if subtotal > LIMITE_DESCONTO:
+        #         desconto = subtotal * DESCONTO_COMUM
+        # elif tipo_cliente == "VIP":
+        #     if subtotal > LIMITE_DESCONTO:
+        #         desconto = subtotal * DESCONTO_VIP
+        #     else:
+        #         desconto = subtotal * DESCONTO_VIP_MINIMO
+        # elif tipo_cliente == "FUNCIONARIO":
+        #     desconto = subtotal * DESCONTO_FUNCIONARIO
+        # else:
+        #     return "ERRO: tipo de cliente desconhecido"
+
+        # frete = 0
+        # if uf == "PE":
+        #     frete = FRETE_PE
+        # elif (uf == "PB" or uf == "AL" or uf == "RN" or uf == "BA"
+        #       or uf == "SE" or uf == "CE" or uf == "PI" or uf == "MA"):
+        #     frete = FRETE_NORDESTE
+        # else:
+        #     frete = FRETE_OUTRAS_REGIOES
+
+        # if subtotal - desconto > LIMITE_FRETE_GRATIS or tipo_cliente == "VIP":
+        #     frete = 0 
+
+        # CORRIGIDO:
+        subtotal, desconto, frete = self._calcular_valores(tipo_cliente, uf)
+        
 
         total = subtotal - desconto + frete
 
@@ -132,33 +170,36 @@ class GerenciadorPedidos:
 
         
     def calcular_orcamento(self, tipo_cliente, uf):
-        subtotal = 0
-        for item in self.itens:
-            subtotal += int(item[1]) * float(item[2])
+        # subtotal = 0
+        # for item in self.itens:
+        #     subtotal += int(item[1]) * float(item[2])
 
-        desconto = 0
-        if tipo_cliente == "COMUM":
-            if subtotal > LIMITE_DESCONTO:
-                desconto = subtotal * DESCONTO_COMUM
-        elif tipo_cliente == "VIP":
-            if subtotal > LIMITE_DESCONTO:
-                desconto = subtotal * DESCONTO_VIP
-            else:
-                desconto = subtotal * DESCONTO_VIP_MINIMO
-        elif tipo_cliente == "FUNCIONARIO":
-            desconto = subtotal * DESCONTO_FUNCIONARIO
+        # desconto = 0
+        # if tipo_cliente == "COMUM":
+        #     if subtotal > LIMITE_DESCONTO:
+        #         desconto = subtotal * DESCONTO_COMUM
+        # elif tipo_cliente == "VIP":
+        #     if subtotal > LIMITE_DESCONTO:
+        #         desconto = subtotal * DESCONTO_VIP
+        #     else:
+        #         desconto = subtotal * DESCONTO_VIP_MINIMO
+        # elif tipo_cliente == "FUNCIONARIO":
+        #     desconto = subtotal * DESCONTO_FUNCIONARIO
 
-        frete = 0
-        if uf == "PE":
-            frete = FRETE_PE
-        elif (uf == "PB" or uf == "AL" or uf == "RN" or uf == "BA"
-              or uf == "SE" or uf == "CE" or uf == "PI"):
-            frete = FRETE_NORDESTE
-        else:
-            frete = FRETE_OUTRAS_REGIOES
+        # frete = 0
+        # if uf == "PE":
+        #     frete = FRETE_PE
+        # elif (uf == "PB" or uf == "AL" or uf == "RN" or uf == "BA"
+        #       or uf == "SE" or uf == "CE" or uf == "PI"):
+        #     frete = FRETE_NORDESTE
+        # else:
+        #     frete = FRETE_OUTRAS_REGIOES
 
-        if subtotal - desconto > LIMITE_FRETE_GRATIS or tipo_cliente == "VIP":
-            frete = 0
+        # if subtotal - desconto > LIMITE_FRETE_GRATIS or tipo_cliente == "VIP":
+        #     frete = 0
+
+        # CORRIGIDO:
+        subtotal, desconto, frete = self._calcular_valores(tipo_cliente, uf)
 
         return round((subtotal - desconto + frete) * 100.0) / 100.0
 

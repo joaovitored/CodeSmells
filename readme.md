@@ -54,4 +54,17 @@ Pendente: descontos, fretes, formas de pagamento, relatório, alerta de estoque,
 
 *   **Commit:** `extrai validação do pedido (Long Method)`
 
+
+### Refatoração 3 — Eliminação de Código Duplicado (Cálculo de Preço)
+* **Code smell tratado:** Duplicated Code (e Inconsistent Business Rules).
+
+* **O que mudou:** Toda a lógica repetida que calculava o subtotal, os descontos por categoria e o frete regional foi extraída dos métodos `processar_pedido()` e `calcular_orcamento()` e centralizada em um único método privado chamado `_calcular_valores()`. O código antigo foi mantido comentado para fins de rastreabilidade. Com essa unificação, o bug de omissão da UF "MA" no orçamento foi corrigido automaticamente.
+
+* **Testes:** O teste de caracterização do bug do MA foi atualizado para validar a correção da inconsistência (agora ambos os fluxos retornam R$ 32.90 de frete). Toda a bateria de testes continuou passando com sucesso (verde).
+
+* **Princípio SOLID:** SRP (Single Responsibility Principle). A classe agora possui um único ponto isolado e especializado responsável por computar as regras de precificação financeira.
+
+* **Commit:** `remove código duplicado e unifica regras de preço (DRY/SRP)`
+
+
 ## 4. Qual princípio SOLID utilizado?
