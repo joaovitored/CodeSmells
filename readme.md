@@ -88,5 +88,15 @@ Pendente: descontos, fretes, formas de pagamento, relatório, alerta de estoque,
 
 * **Commit:** `aplica padrão Strategy para formas de pagamento (OCP)`
 
+### Refatoração 6 — Objeto de Valor Endereço para Data Clumps
+* **Code smell tratado:** Data Clumps e Long Parameter List.
+
+* **O que mudou:** As variáveis primitivas de localização (`rua`, `numero`, `cidade`, `uf`, `cep`) foram extraídas do escopo solto e encapsuladas na classe de objeto de valor `Endereco`. O método `processar_pedido()` passou a instanciar esse objeto e delegar a ele a geração da string formatada utilizada no CSV e nas notificações.
+
+* **Testes:** A bateria de testes rodou e passou com 100% de sucesso (verde), provando que a mudança estrutural manteve as saídas de arquivo e logs perfeitamente idênticas.
+
+* **Princípio SOLID:** SRP (Single Responsibility Principle). A responsabilidade de saber estruturar e concatenar textualmente as informações de uma entrega foi extraída do gerenciador geral e atribuída à classe especialista `Endereco`.
+
+* **Commit:** `extrai objeto Endereco para resolver Data Clumps (SRP)`
 
 ## 4. Qual princípio SOLID utilizado?

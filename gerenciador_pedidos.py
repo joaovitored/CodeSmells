@@ -57,6 +57,18 @@ class PagamentoCartao:
         return total
 
 
+class Endereco:
+    def __init__(self, rua, numero, cidade, uf, cep):
+        self.rua = rua
+        self.numero = numero
+        self.cidade = cidade
+        self.uf = uf
+        self.cep = cep
+
+    def formatar(self):
+        return self.rua + ", " + self.numero + ", " + self.cidade + "/" + self.uf + ", CEP " + self.cep
+
+
 
 class GerenciadorPedidos:
 
@@ -209,7 +221,13 @@ class GerenciadorPedidos:
         for item in self.itens:
             self.estoque[item[0]] = self.estoque[item[0]] - int(item[1])
 
-        endereco = rua + ", " + numero + ", " + cidade + "/" + uf + ", CEP " + cep
+        # endereco = rua + ", " + numero + ", " + cidade + "/" + uf + ", CEP " + cep
+        # CORRIGIDO:
+        obj_endereco = Endereco(rua, numero, cidade, uf, cep)
+                endereco = obj_endereco.formatar()
+
+
+
 
         try:
             f = open("pedidos.csv", "a", encoding="utf-8")
