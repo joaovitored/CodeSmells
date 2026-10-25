@@ -111,5 +111,32 @@ Pendente: descontos, fretes, formas de pagamento, relatório, alerta de estoque,
 
 * **Commit:** `separa persistência de dados e serviço de notificação (SRP)`
 
+### Refatoração 8 — Ajuste do Método Orquestrador (processar_pedido)
+* **Code smell tratado:** Long Method.
 
-## 4. Qual princípio SOLID utilizado?
+* **O que mudou:** A última lógica de infraestrutura de baixo nível que restava no fluxo central (a iteração manual para decremento dos itens do estoque) foi extraída para o método privado `_atualizar_estoque()`. O método `processar_pedido()` agora atua estritamente como um orquestrador/maestro de alto nível.
+
+* **Testes:** Toda a bateria de 11 testes originais e os novos de caracterização passaram com sucesso (verde), consolidando a rede de segurança completa do projeto.
+
+* **Princípio SOLID:** SRP (Single Responsibility Principle). O método `processar_pedido()` possui agora uma única responsabilidade lógica: coordenar a sequência de passos de um pedido (validar, precificar, processar pagamento, atualizar estoque, salvar e notificar), sem implementar nenhum detalhe de baixo nível diretamente.
+
+* **Commit:** `finaliza refatoração tornando processar_pedido um orquestrador puro (SRP)`
+
+
+## 4. Princípios SOLID utilizados
+
+Durante todo o processo de engenharia reversa e refatoração em passos pequenos, as violações de design arquitetural identificadas no código original foram mitigadas com a restauração dos princípios SOLID, estruturados conforme a ordem dos problemas mapeados:
+
+*   **God Class e Divergent Change (Restaurando o SRP):** A concentração massiva de responsabilidades na classe principal foi resolvida ao desacoplar totalmente as camadas de infraestrutura. A persistência em arquivos planos foi isolada na classe dedicada `PedidoRepository`, enquanto o mecanismo de mensageria em tela foi movido para a classe `ServicoNotificacao`. Essa modularização garante que mudanças em tecnologias externas de banco de dados ou canais de comunicação não gerem impactos ou motivos de alteração no motor de negócios.
+
+*   **Long Method (Restaurando o SRP):** O método inflado `processar_pedido()` teve suas etapas segmentadas e limpas de forma cirúrgica. A verificação de consistência e integridade dos dados iniciais do cliente foi delegada ao método especializado `_validar_pedido()`. Posteriormente, o loop de baixo nível responsável por decrementar os itens do estoque também foi extraído para o método privado `_atualizar_estoque()`. Como resultado, a função principal passou a atuar estritamente como um orquestrador ou maestro puro de alto nível.
+
+*   **Duplicated Code e Inconsistent Business Rules (Restaurando o SRP e DRY):** A lógica repetida que computava subtotais, faixas de desconto por categoria e fretes regionais foi eliminada de `processar_pedido()` e `calcular_orcamento()`, sendo centralizada no método privado unificado `_calcular_valores()`. Essa extração removeu o risco de divergências nas regras comerciais e corrigiu de forma automatizada o bug que gerava cobranças inconsistentes para a UF "MA" no fluxo de orçamentos.
+
+*   **Magic Numbers (Melhoria de Manutenibilidade):** Os números literais soltos e sem semântica explícita no meio dos cálculos matemáticos foram extraídos para constantes nomeadas e fortemente tipadas no escopo global do módulo. Essa alteração direta conferiu clareza imediata sobre as taxas de parcelamento, limites comerciais e margens de descontos adotadas na loja.
+
+*   **Primitive Obsession (Restaurando o OCP):** O uso inadequado de strings brutas e condicionais encadeadas (`if/elif`) para controle de fluxos de negócio foi substituído pela implementação do padrão arquitetural *Strategy*. As políticas de descontos foram encapsuladas nas classes `DescontoComum`, `DescontoVIP` e `DescontoFuncionario`, enquanto as mecânicas financeiras foram estruturadas em `PagamentoPIX`, `PagamentoBoleto` e `PagamentoCartao`. A arquitetura agora encontra-se fechada para modificação de código existente e totalmente aberta para a adição de novas regras ou métodos de cobrança.
+
+*   **Side Effects (Isolamento de Efeitos Colaterais):** A mistura de processamento puro com IO externo no meio de loops foi mitigada ao mover as chamadas físicas de escrita em arquivos e saídas de terminal para os seus respectivos componentes especializados isolados, permitindo que a lógica central do gerenciador pudesse ser validada de forma previsível e determinística.
+
+*   **Inconsistent Validation (Restaurando o SRP):** A validação tardia que verificava e rejeitava tipos de clientes desconhecidos apenas no processamento de pedidos foi centralizada e unificada através da reestruturação de tratamento dinâmico das classes de estratégia, garantindo que qualquer inconsistência de entrada seja barrada com o mesmo comportamento padronizado entre as diferentes operações públicas do sistema.
