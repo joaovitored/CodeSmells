@@ -66,5 +66,17 @@ Pendente: descontos, fretes, formas de pagamento, relatório, alerta de estoque,
 
 * **Commit:** `remove código duplicado e unifica regras de preço (DRY/SRP)`
 
+### Refatoração 4 — Padrão Strategy para Descontos de Clientes
+* **Code smell tratado:** Primitive Obsession (Uso de strings estruturais em cadeias de if/elif).
+
+* **O que mudou:** As regras de desconto baseadas no tipo de cliente foram extraídas de dentro de condicionais do método `_calcular_valores()` e transformadas em classes de estratégia isoladas (`DescontoComum`, `DescontoVIP`, `DescontoFuncionario`). O `GerenciadorPedidos` agora resolve dinamicamente qual regra aplicar através de um mapa de estratégias no construtor.
+
+* **Testes:** Toda a bateria de testes de caracterização de descontos (VIP acima/abaixo, funcionário e comum) passou com sucesso (verde).
+
+* **Princípio SOLID:** OCP (Open/Closed Principle). O sistema agora está fechado para modificação no método de cálculo, mas aberto para expansão. Se um novo tipo de cliente for criado, basta criar sua classe de estratégia e registrá-la no dicionário, sem tocar na lógica central.
+
+* **Commit:** `aplica padrão Strategy para descontos de clientes (OCP)`
+
+
 
 ## 4. Qual princípio SOLID utilizado?

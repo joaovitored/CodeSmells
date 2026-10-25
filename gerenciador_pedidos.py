@@ -19,6 +19,26 @@ MIN_PARCELAS = 1
 MAX_PARCELAS = 12
 LIMITE_META_MENSAL = 10000
 
+
+
+class DescontoComum:
+    def calcular(self, subtotal):
+        if subtotal > 500: # LIMITE_DESCONTO
+            return subtotal * 0.05 # DESCONTO_COMUM
+        return 0
+
+class DescontoVIP:
+    def calcular(self, subtotal):
+        if subtotal > 500: # LIMITE_DESCONTO
+            return subtotal * 0.15 # DESCONTO_VIP
+        return subtotal * 0.10 # DESCONTO_VIP_MINIMO
+
+class DescontoFuncionario:
+    def calcular(self, subtotal):
+        return subtotal * 0.20 # DESCONTO_FUNCIONARIO
+
+
+
 class GerenciadorPedidos:
 
     def __init__(self):
@@ -30,6 +50,12 @@ class GerenciadorPedidos:
         self.estoque["CADERNO"] = 50
         self.estoque["MOCHILA"] = 10
         self.estoque["CALCULADORA"] = 5
+
+        self.estrategias_desconto = {
+            "COMUM": DescontoComum(),
+            "VIP": DescontoVIP(),
+            "FUNCIONARIO": DescontoFuncionario()
+        }
 
     def adicionar_item(self, produto, qtd, preco):
         self.itens.append([produto, str(qtd), str(preco)])
@@ -56,17 +82,21 @@ class GerenciadorPedidos:
         for item in self.itens:
             subtotal += int(item[1]) * float(item[2])
 
-        desconto = 0
-        if tipo_cliente == "COMUM":
-            if subtotal > LIMITE_DESCONTO:
-                desconto = subtotal * DESCONTO_COMUM
-        elif tipo_cliente == "VIP":
-            if subtotal > LIMITE_DESCONTO:
-                desconto = subtotal * DESCONTO_VIP
-            else:
-                desconto = subtotal * DESCONTO_VIP_MINIMO
-        elif tipo_cliente == "FUNCIONARIO":
-            desconto = subtotal * DESCONTO_FUNCIONARIO
+        # desconto = 0
+        # if tipo_cliente == "COMUM":
+        #     if subtotal > LIMITE_DESCONTO:
+        #         desconto = subtotal * DESCONTO_COMUM
+        # elif tipo_cliente == "VIP":
+        #     if subtotal > LIMITE_DESCONTO:
+        #         desconto = subtotal * DESCONTO_VIP
+        #     else:
+        #         desconto = subtotal * DESCONTO_VIP_MINIMO
+        # elif tipo_cliente == "FUNCIONARIO":
+        #     desconto = subtotal * DESCONTO_FUNCIONARIO
+
+        # CORRIGIDO:
+        estrategia = self.estrategias_desconto.get(tipo_cliente)
+        desconto = estrategia.calcular(subtotal) if estrategia else 0
 
         frete = 0
         if uf == "PE":
@@ -89,8 +119,7 @@ class GerenciadorPedidos:
         erro = self._validar_pedido(nome, email, cep)
         if erro:
             return erro
-
-        
+            
         # subtotal = 0
         # for item in self.itens:
         #     subtotal += int(item[1]) * float(item[2])
